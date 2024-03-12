@@ -75,10 +75,10 @@ function main_menu() {
     echo -e "\n${raw_help}\n"
     main_menu
     elif echo "${laang}" | grep -qi "clear"; then
-        bash jadwal.sh
+        bash jadwal-sholat.sh
     elif echo "${laang}" | grep -qi "update"; then
         rm -rf .selected_id.dat
-        bash jadwal.sh
+        bash jadwal-sholat.sh
     elif echo "${laang}" | grep -qi "Murotal"; then
         if echo "${laang}" | grep -qi "^Murotal [0-9]*$"; then
             surah_number=$(echo "${laang}" | grep -o "[0-9]*")
