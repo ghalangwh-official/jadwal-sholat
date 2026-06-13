@@ -1,0 +1,21 @@
+{
+  "status": true,
+  "request": {
+    "path": "/sholat/jadwal/1505/2025-03-22"
+  },
+  "data": {
+    "id": "1505",
+    "daerah": "JAWA TENGAH",
+    "lokasi": "KAB. SEMARANG",
+    "jadwal": {
+      "imsak": "04:18",
+      "subuh": "04:28",
+      "terbit": "05:44",
+      "dhuha": "06:05",
+      "dzuhur": "11:49",
+      "ashar": "15:09",
+      "maghrib": "17:47",
+      "isya": "18:58"
+    }
+  }
+}

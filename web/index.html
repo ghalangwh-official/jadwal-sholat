@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10312b">
+  <title>Jadwal Sholat Local Web</title>
+  <link rel="stylesheet" href="./styles.css?v=20260611-1">
+</head>
+<body>
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
+
+  <main class="app-shell">
+    <header class="hero panel">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow">Local-first web • offline cache • online refresh</div>
+          <h1>Jadwal Sholat</h1>
+          <p class="lede">
+            Lihat jadwal sholat, baca Al-Quran, dan putar murotal dari browser lokal Termux.
+            Data lokal tetap tampil saat offline, lalu bisa di-refresh online kapan perlu.
+          </p>
+          <div class="status-row">
+            <span class="pill" id="connectionPill">Checking network...</span>
+            <span class="pill" id="hijriPill">Hijriyah...</span>
+            <span class="pill" id="cityPill">Kota belum dipilih</span>
+          </div>
+        </div>
+
+        <aside class="hero-aside">
+          <div class="hero-card">
+            <span class="muted">Mode</span>
+            <strong>Offline-first</strong>
+            <p>Cache lokal tetap bisa dibaca saat jaringan mati.</p>
+          </div>
+          <div class="hero-card">
+            <span class="muted">Konten</span>
+            <strong>Quran + Murotal</strong>
+            <p>Cari ayat, baca detail, lalu putar audio langsung.</p>
+          </div>
+        </aside>
+      </div>
+    </header>
+
+    <nav class="panel top-nav" aria-label="Navigasi utama">
+      <a class="nav-chip" href="#jadwal">Jadwal</a>
+      <a class="nav-chip" href="#quran">Al-Quran</a>
+      <a class="nav-chip" href="#murotal">Murotal</a>
+      <a class="nav-chip" href="#footer">Footer</a>
+    </nav>
+
+    <section class="panel schedule-panel" id="jadwal">
+      <div class="section-head">
+        <div>
+          <h2>Jadwal Hari Ini</h2>
+          <p>Ringkas, langsung ke waktu sholat hari ini, dengan cache lokal dan refresh online.</p>
+        </div>
+        <div class="actions">
+          <button class="ghost" id="reloadLocalBtn">Muat lokal</button>
+          <button class="primary" id="reloadOnlineBtn">Refresh online</button>
+        </div>
+      </div>
+
+      <div class="control-grid">
+        <label class="field">
+          <span>Carikan kota</span>
+          <input id="cityQuery" type="search" placeholder="contoh: semarang, jogja, jakarta">
+        </label>
+        <label class="field">
+          <span>Kode kota</span>
+          <input id="cityId" type="text" inputmode="numeric" placeholder="otomatis terisi dari hasil pilih">
+        </label>
+        <label class="field">
+          <span>Tanggal</span>
+          <input id="scheduleDate" type="date">
+        </label>
+        <label class="field">
+          <span>Waktu sekarang</span>
+          <input id="clockNow" type="text" readonly>
+        </label>
+      </div>
+
+      <div class="search-results" id="cityResults"></div>
+
+      <div class="schedule-card">
+        <div class="schedule-meta">
+          <div>
+            <span class="muted">Lokasi</span>
+            <strong id="scheduleLocation">-</strong>
+          </div>
+          <div>
+            <span class="muted">Tanggal jadwal</span>
+            <strong id="scheduleDateLabel">-</strong>
+          </div>
+          <div>
+            <span class="muted">Next prayer</span>
+            <strong id="nextPrayer">-</strong>
+          </div>
+        </div>
+
+        <div class="schedule-grid" id="scheduleGrid"></div>
+        <div class="schedule-foot">
+          <span class="muted">Sumber data</span>
+          <strong id="scheduleSource">-</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel mushaf-panel" id="quran">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Al-Quran</div>
+          <h2>Baca Quran</h2>
+          <p>Urut dari Al-Fatihah sampai An-Nas, dengan daftar surah di sidebar dan audio per ayat atau per surah.</p>
+        </div>
+        <div class="actions">
+          <button class="ghost" id="mushafPrevBtn">Prev</button>
+          <button class="ghost" id="mushafNextBtn">Next</button>
+          <button class="primary" id="mushafLoadBtn">Buka surah</button>
+          <button class="ghost" id="mushafAudioToggleBtn">Audio opsional</button>
+        </div>
+      </div>
+
+      <div class="control-grid mushaf-controls">
+        <label class="field">
+          <span>Cari surah</span>
+          <input id="mushafSearchInput" type="search" placeholder="contoh: fatihah, yasin, al mulk">
+        </label>
+        <label class="field">
+          <span>Surah aktif</span>
+          <input id="mushafSurahInput" type="number" min="1" max="114" value="1">
+        </label>
+        <label class="field">
+          <span>Mode baca</span>
+          <input id="mushafModeInput" type="text" value="Arab + terjemah" readonly>
+        </label>
+        <label class="field">
+          <span>Cache</span>
+          <input id="mushafCacheInput" type="text" value="Surah terakhir" readonly>
+        </label>
+      </div>
+
+      <div class="mushaf-layout">
+        <aside class="mushaf-sidebar">
+          <div class="mushaf-sidebar-head">
+            <strong>Daftar Surah</strong>
+            <span class="muted" id="mushafIndexCount">114 surah</span>
+          </div>
+          <div class="mushaf-quicklinks" id="mushafQuicklinks"></div>
+          <div class="mushaf-index" id="mushafIndex"></div>
+        </aside>
+        <article class="mushaf-reader">
+          <div class="detail-head">
+            <div>
+              <span class="muted">Surah dibaca</span>
+              <h3 id="mushafTitle">Al-Fatihah</h3>
+              <p class="muted" id="mushafMeta">Surah 1 • belum dimuat</p>
+              <p class="reader-hint">Mode baca menampilkan ayat, translasi, dan metadata. Audio hanya tambahan.</p>
+            </div>
+            <div class="mushaf-actions">
+              <button class="ghost" id="mushafPlayBtn" disabled>Play surah</button>
+              <button class="ghost" id="mushafCacheBtn">Simpan cache</button>
+            </div>
+          </div>
+
+          <div class="audio-shell hidden" id="mushafAudioShell">
+            <div class="audio-shell-head">
+              <span class="muted">Audio surah</span>
+            </div>
+            <audio id="mushafAudio" controls preload="none"></audio>
+          </div>
+          <div class="mushaf-description" id="mushafDescription"></div>
+          <div class="mushaf-verses" id="mushafVerses"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel compact-panel" id="murotal">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Audio</div>
+          <h2>Murotal</h2>
+          <p>Streaming online, atau buka folder unduhan lokal untuk mode offline.</p>
+        </div>
+        <div class="actions">
+          <a class="ghost link-btn" href="../download/" target="_blank" rel="noreferrer">Buka download</a>
+        </div>
+      </div>
+
+      <div class="control-grid quran-controls">
+        <label class="field">
+          <span>Nomor surah</span>
+          <input id="surahInput" type="number" min="1" max="114" value="1">
+        </label>
+        <div class="field button-field">
+          <span>&nbsp;</span>
+          <button class="primary" id="loadMurotalBtn">Muat murotal</button>
+        </div>
+      </div>
+
+      <div class="detail-card">
+        <div class="detail-head">
+          <div>
+            <span class="muted">Surah</span>
+            <h3 id="murotalTitle">Belum ada surah dimuat</h3>
+          </div>
+        </div>
+        <p class="muted" id="murotalMeta">Masukkan nomor surah untuk memuat audio dan metadata.</p>
+        <audio id="murotalAudio" controls preload="none"></audio>
+        <div class="note" id="murotalNote">
+          Kalau sedang offline, gunakan folder <code>download/</code> untuk memutar file yang sudah diunduh dari script.
+        </div>
+      </div>
+
+      <div class="detail-card cache-card">
+        <div class="detail-head">
+          <div>
+            <span class="muted">Cache lokal</span>
+            <h3>Riwayat terakhir</h3>
+          </div>
+        </div>
+        <pre id="cachePreview">{}</pre>
+      </div>
+    </section>
+
+    <footer class="panel footer-panel" id="footer">
+      <div>
+        <div class="eyebrow">Shortcut</div>
+        <p>Jalankan `bash web.sh open` untuk membuka UI ini dari Termux.</p>
+      </div>
+      <div class="footer-actions">
+        <span class="pill">Offline cache</span>
+        <span class="pill">Hijriyah</span>
+        <span class="pill">Quran</span>
+        <span class="pill">Murotal</span>
+      </div>
+    </footer>
+  </main>
+
+  <script src="./app.js?v=20260611-1"></script>
+</body>
+</html>
