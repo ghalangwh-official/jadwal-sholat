@@ -49,6 +49,21 @@ die() {
 }
 
 show_help() {
+    cat << 'EOF'
+Usage: jadwal-sholat.sh [options]
+
+Options:
+  -h, --help     Show this help message
+  -v, --version  Show version
+
+Commands:
+  Select city and view prayer schedule
+  Set up automated notifications
+  Configure adhan audio
+
+EOF
+}
+
 # Termux adalah target utama repo ini, jadi jalur instalasi dioptimalkan untuk `pkg`.
 function check_and_install_package() {
     local command_name="$1"
